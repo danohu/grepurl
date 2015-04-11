@@ -36,3 +36,32 @@ func TestSimpleIntersect(t *testing.T){
 	}
 	_ = inters
 }
+
+func randomInts(length int) []int{
+	output := make([]int, length)
+	for i,_ := range output{
+		output[i] = rand.Intn(99999)
+	}
+	return output[:]
+}
+
+func TestIntersect(t *testing.T){
+	// try intersections with long lists of random ints
+	lengths := [] int {1,100,1000,10000,100000} //,100000000}
+	for _, len_one := range lengths {
+		one := randomInts(len_one)
+		for _, len_two := range lengths {
+			two := randomInts(len_two)
+			fmt.Println(len_one, len_two)
+			_ = intersect_two(one,two)
+			/*res_slow := res_fast
+			//res_slow := intersect_two(one,two)
+			if(!reflect.DeepEqual(res_fast, res_slow)){
+				fmt.Println(res_fast)
+				fmt.Println(res_slow)
+				t.Fail()
+			}*/
+
+		}
+	}
+}

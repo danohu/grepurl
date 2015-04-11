@@ -1,4 +1,4 @@
-Find urls by regular expressions
+#Find urls by regular expressions
 
 Common crawl has an index of 5 billion urls
 Using this, provide a search for regex searches
@@ -7,7 +7,7 @@ e.g. all images on government sites
 http://.*gov.*/.*(jpg|jpeg)
 
 
-# Existing Work
+## Existing Work
 
 Follow some tricks for regex search based on
 
@@ -19,7 +19,7 @@ Follow some tricks for regex search based on
 # Approach
 
 - Decompose every url into trigrams (maybe 4-grams would be better???)
-- Limit to the first n results
+- Limit to the first n results for now
 
 # Limitations for simplicity
 
@@ -28,58 +28,44 @@ Follow some tricks for regex search based on
   [I'm thinking now that case-sensitive for the domains is probably better. the more separation you can get, the better]
 - when using 3-grams, you want to order them by the least common first
 
-- think bloom filters. not sure quite how, though??
-[like -- have a bloom filter tree that would]
+###
 
-don't I want to store more things -- like every 4-gram
-400,000 bits
-if i can keep it to lowercase, I'm down to
-
---
 keep sets A,B,C,D in sorted order on disk
 
-for each item in A:
- B successor of Ai
-  bigger tha
- Ai compare Bi?:
-  equa
-   hold iterators, test next item
-  
- in B?
-  no->
-   advance
-
-2**32 ~ 5 billion
- just a bit too many
-
-the benefit of hashing is to limit ourselves to the most efficient items
-
-all this is going to be using memory mapped files
-
-so you probably want to allow 2**35 or so, and not worry about alignment
- that means each decomposition is about 20 gigs
-  except that you might be able to compress
-
+for each item Ai in A:
+ find first item in B >= Ai
+  if equal, append to output and iterate Ai
+  if bigger than Ai, find first item in A >= Bi
+  lather, rinse, repeat (until we run out of A or B)
 
 keep track of:
  the size of each n-gram set
  the size of the intersection of each pair of n-gram sets
 use that info to predict a sort
 
+### is it realistic?
 
-start at first item
+#### Scalability
+We can divide the 5 billion urls across multiple servers -- there are no interdependencies, beyond firing out a request to all servers and collating the responses.
 
-if its in the se
+We probably want a few machines with lots of RAM, and ideally some local SSD storage. On EC2, that means something in the R series. But for the long run, you can get comparable specs *much* cheaper from hetzner auctions.
 
-# Advanced exercises
-- cluster sites by (guess at) which CMS they are running
+#### Storage space
 
-average length of an url is 34 chars. so we need approximately 34 ngrams per url
-that means we need to
+average length of an url is 34 chars. We need as many ngrams as characters (or a couple more if we want to include start/end anchors). That meansapproximately 34 ngrams per url
+that means we need to store 34 * 5 billion * (size of each node).
 
---
-server setup:
- EC2 provides high-memory R3 instances -- 15gb for $0.175/hour
- basicallly, that whole series is g
+These 170 billion nodes get divided into [charset size] ** 3 sets. For domain names that's alphanumerics (case-insensitive), plus hyphen and dot. So 38**3, or about 55,000
+For full paths the charset is a-z, A-Z, 0-9, plus -._~:?#[]@!$&'()*,;=/e. That makes us 82; 82**3 is 550,000.
+This higher number is actually better, since it eases search for any one regex. It just means there's a large overhead for each machine
 
-http://repository.openoil.net/wiki/MediaWiki:Common.js
+
+2 options for storage:
+
+a) sorted list of uint32. This makes about 680 GB
+b) b+-tree. This will require several times more space, but with the benefit of much faster times for intersection operations. [other variations on binary- or b-trees might also work]
+
+#### Search times
+
+If all URL characters were random, we'd have to go through about 300,000 keys for the first intersection. Some of that will happen in parallel, though. And with luck not all ngrams will be equally common, so we'll be able to limit our set a lot before hitting the big sets.
+

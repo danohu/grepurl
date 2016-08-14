@@ -3,50 +3,55 @@ package grepurl
 import (
 	"fmt"
 
-	bitset "github.com/willf/bitset"
+	roaring "github.com/RoaringBitmap/roaring"
 )
 
-type ONGram struct {
+type NGram struct {
 	letters string
-	bitmap  bitset.BitSet
+	bitmap  roaring.Bitmap
 }
 
-func (ng *ONGram) GetSet(ch chan uint) {
-	var i uint
-	for e := true; e == true; {
-		i, e = ng.bitmap.NextSet(i)
-		if e {
-			ch <- i
-		}
-		i += 1
+func (ng *NGram) GetSet(ch chan uint32) {
+	for _, el := range ng.bitmap.ToArray() {
+		ch <- el
 	}
 	close(ch)
-
 }
 
-func GetSetBits(bs *bitset.BitSet, ch chan uint) {
-	var i uint
-	for e := true; e == true; {
-		i, e = bs.NextSet(i)
-		if e {
-			ch <- i
+type TLAIndex struct {
+	cardinality int
+	letters     map[string]*roaring.Bitmap
+}
+
+func NewTLAIndex() *TLAIndex {
+	return &TLAIndex{
+		cardinality: 8388608, // 1 Megabyte in bits
+		letters:     make(map[string]*roaring.Bitmap)}
+}
+
+func (ind *TLAIndex) Add(data TLAData) {
+	for _, tla := range data.tlas {
+		_, exists := ind.letters[tla]
+		if !exists {
+			ind.letters[tla] = roaring.NewBitmap()
 		}
-		i += 1
+		ind.letters[tla].Add(data.id)
 	}
-	close(ch)
+}
+
+func (ind *TLAIndex) Print() {
+	for k, v := range ind.letters {
+		fmt.Println(k, v.String())
+	}
 }
 
 func MiniBit() {
-	var a, b bitset.BitSet
-	ch := make(chan uint)
-	a.Set(0).Set(10).Set(15)
-	b.Set(10).Set(11).Set(0).Set(15)
-	c := a.Intersection(&b)
-	ng := &ONGram{letters: "omg", bitmap: *c}
-
+	ch := make(chan uint32)
+	roar := roaring.BitmapOf(14, 1000, 99902)
+	ng := &NGram{letters: "wtf", bitmap: *roar}
 	go ng.GetSet(ch)
-	for i := range ch {
-		fmt.Println(i)
+	for el := range ch {
+		fmt.Println(el)
 	}
 
 }

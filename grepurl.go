@@ -8,6 +8,9 @@ import (
 	"sort"
 )
 
+const START_URL = "\x02"
+const END_URL = "\x03"
+
 //Map id -> URL
 var urlcodes map[int]string
 var nexturlcode int
@@ -56,6 +59,7 @@ func intersect_two_slow(one []int, two []int) []int {
 func SplitNgram(url string) []string {
 	// Split an url into three-character chunks
 	results := []string{}
+	url = START_URL + url + END_URL
 	for i := 0; i < len(url)-2; i++ {
 		results = append(results, url[i:i+3])
 	}

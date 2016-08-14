@@ -77,6 +77,16 @@ func splitFile(fn string, raw_urls chan string, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
+func SplitNgram(url string) []string {
+	// Split an url into three-character chunks
+	results := []string{}
+	url = START_URL + url + END_URL
+	for i := 0; i < len(url)-2; i++ {
+		results = append(results, url[i:i+3])
+	}
+	return results
+}
+
 func splitURLs(inp chan string, outp chan URLData, wg *sync.WaitGroup) {
 	for line := range inp {
 		outp <- URLData{line, SplitNgram(line)}

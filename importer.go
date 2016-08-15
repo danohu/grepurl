@@ -3,6 +3,7 @@ package grepurl
 import (
 	"bufio"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -16,7 +17,7 @@ type TrigramData struct {
 	trigrams []string
 }
 
-func RunImport(files []string) {
+func RunImport(files []string) (URLStore, *TrigramIndex) {
 	// channels and global state
 	raw_urls := make(chan string, 1000)
 	urls_to_store := make(chan URLData, 1000)
@@ -39,7 +40,7 @@ func RunImport(files []string) {
 	close(raw_urls)
 	splitProc.Wait()
 
-	trigramindex.Print()
+	return urlstore, trigramindex
 	/*for trigram := range trigrams_to_index {
 		fmt.Println(trigram.id, trigram.trigrams)
 	}*/
@@ -80,11 +81,23 @@ func splitFile(fn string, raw_urls chan string, wg *sync.WaitGroup) {
 func SplitTrigram(url string) []string {
 	// Split an url into three-character chunks
 	results := []string{}
-	url = START_URL + url + END_URL
+	url = PrepareUrl(url)
+	url = START_URL + url + END_URL // XX should this go in PrepareUrl?
 	for i := 0; i < len(url)-2; i++ {
 		results = append(results, url[i:i+3])
 	}
 	return results
+}
+
+//Prepare an URL for the trigram index
+//This consists of:
+// - lowercasing everything
+// - optionally adding start and end anchors
+// - applying url-encoding where applicable
+// - stripping out any remaining non-allowed characters
+func PrepareUrl(raw string) string {
+	prepared := strings.ToLower(raw)
+	return prepared
 }
 
 func splitURLs(inp chan string, outp chan URLData, wg *sync.WaitGroup) {

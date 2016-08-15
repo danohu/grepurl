@@ -41,11 +41,6 @@ func RunImport(files []string) (URLStore, *TrigramIndex) {
 	splitProc.Wait()
 
 	return urlstore, trigramindex
-	/*for trigram := range trigrams_to_index {
-		fmt.Println(trigram.id, trigram.trigrams)
-	}*/
-
-	//all this needs to complete
 }
 
 func ingestTrigrams(trigrams chan TrigramData, idx *TrigramIndex, wg *sync.WaitGroup) {

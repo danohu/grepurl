@@ -44,14 +44,3 @@ func (ind *TrigramIndex) Print() {
 		fmt.Println(k, v.String())
 	}
 }
-
-func MiniBit() {
-	ch := make(chan uint32)
-	roar := roaring.BitmapOf(14, 1000, 99902)
-	ng := &Trigram{letters: "wtf", bitmap: *roar}
-	go ng.GetSet(ch)
-	for el := range ch {
-		fmt.Println(el)
-	}
-
-}

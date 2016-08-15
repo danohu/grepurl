@@ -38,7 +38,6 @@ func RunQuery(inp string, tgindex *TrigramIndex, urlstore URLStore, out chan str
 	for id := range ids_in {
 		url, err := urlstore.getURL(id)
 		if err == nil {
-			fmt.Println(url)
 			if pattern.MatchString(url) {
 				out <- url
 			}
@@ -54,7 +53,6 @@ func ApplyQuery(qry *index.Query, tgindex *TrigramIndex, out chan uint32) {
 	roar := RoaringQuery(qry, tgindex)
 	for _, j := range roar.ToArray() {
 		out <- j
-		fmt.Println(j)
 	}
 	close(out)
 }

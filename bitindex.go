@@ -6,40 +6,40 @@ import (
 	roaring "github.com/RoaringBitmap/roaring"
 )
 
-type NGram struct {
+type Trigram struct {
 	letters string
 	bitmap  roaring.Bitmap
 }
 
-func (ng *NGram) GetSet(ch chan uint32) {
+func (ng *Trigram) GetSet(ch chan uint32) {
 	for _, el := range ng.bitmap.ToArray() {
 		ch <- el
 	}
 	close(ch)
 }
 
-type TLAIndex struct {
+type TrigramIndex struct {
 	cardinality int
 	letters     map[string]*roaring.Bitmap
 }
 
-func NewTLAIndex() *TLAIndex {
-	return &TLAIndex{
+func NewTrigramIndex() *TrigramIndex {
+	return &TrigramIndex{
 		cardinality: 8388608, // 1 Megabyte in bits
 		letters:     make(map[string]*roaring.Bitmap)}
 }
 
-func (ind *TLAIndex) Add(data TLAData) {
-	for _, tla := range data.tlas {
-		_, exists := ind.letters[tla]
+func (ind *TrigramIndex) Add(data TrigramData) {
+	for _, trigram := range data.trigrams {
+		_, exists := ind.letters[trigram]
 		if !exists {
-			ind.letters[tla] = roaring.NewBitmap()
+			ind.letters[trigram] = roaring.NewBitmap()
 		}
-		ind.letters[tla].Add(data.id)
+		ind.letters[trigram].Add(data.id)
 	}
 }
 
-func (ind *TLAIndex) Print() {
+func (ind *TrigramIndex) Print() {
 	for k, v := range ind.letters {
 		fmt.Println(k, v.String())
 	}
@@ -48,7 +48,7 @@ func (ind *TLAIndex) Print() {
 func MiniBit() {
 	ch := make(chan uint32)
 	roar := roaring.BitmapOf(14, 1000, 99902)
-	ng := &NGram{letters: "wtf", bitmap: *roar}
+	ng := &Trigram{letters: "wtf", bitmap: *roar}
 	go ng.GetSet(ch)
 	for el := range ch {
 		fmt.Println(el)

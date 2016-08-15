@@ -7,24 +7,24 @@ import (
 )
 
 type URLData struct {
-	url  string
-	tlas []string
+	url      string
+	trigrams []string
 }
 
-type TLAData struct {
-	id   uint32
-	tlas []string
+type TrigramData struct {
+	id       uint32
+	trigrams []string
 }
 
 func RunImport(files []string) {
 	// channels and global state
 	raw_urls := make(chan string, 1000)
 	urls_to_store := make(chan URLData, 1000)
-	tlas_to_index := make(chan TLAData, 1000)
+	trigrams_to_index := make(chan TrigramData, 1000)
 	var fileProc, splitProc sync.WaitGroup
 
 	urlstore := NewMemoryURLStore()
-	tlaindex := NewTLAIndex()
+	trigramindex := NewTrigramIndex()
 
 	for _, fn := range files {
 		ff := fn
@@ -33,36 +33,36 @@ func RunImport(files []string) {
 	}
 	splitProc.Add(3)
 	go splitURLs(raw_urls, urls_to_store, &splitProc)
-	go buildTLAs(urls_to_store, tlas_to_index, urlstore, &splitProc)
-	go ingestTLAs(tlas_to_index, tlaindex, &splitProc)
+	go buildTrigrams(urls_to_store, trigrams_to_index, urlstore, &splitProc)
+	go ingestTrigrams(trigrams_to_index, trigramindex, &splitProc)
 	fileProc.Wait()
 	close(raw_urls)
 	splitProc.Wait()
 
-	tlaindex.Print()
-	/*for tla := range tlas_to_index {
-		fmt.Println(tla.id, tla.tlas)
+	trigramindex.Print()
+	/*for trigram := range trigrams_to_index {
+		fmt.Println(trigram.id, trigram.trigrams)
 	}*/
 
 	//all this needs to complete
 }
 
-func ingestTLAs(tlas chan TLAData, idx *TLAIndex, wg *sync.WaitGroup) {
+func ingestTrigrams(trigrams chan TrigramData, idx *TrigramIndex, wg *sync.WaitGroup) {
 	defer wg.Done()
-	for item := range tlas {
+	for item := range trigrams {
 		idx.Add(item)
 	}
 }
 
 // Convert
-func buildTLAs(urls_to_index chan URLData, tlas_to_index chan TLAData, urlstore URLStore, wg *sync.WaitGroup) {
+func buildTrigrams(urls_to_index chan URLData, trigrams_to_index chan TrigramData, urlstore URLStore, wg *sync.WaitGroup) {
 	for item := range urls_to_index {
-		tlas_to_index <- TLAData{
-			urlstore.addURL(item.url, item.tlas), item.tlas,
+		trigrams_to_index <- TrigramData{
+			urlstore.addURL(item.url, item.trigrams), item.trigrams,
 		}
 	}
 
-	close(tlas_to_index)
+	close(trigrams_to_index)
 	wg.Done()
 }
 
@@ -77,7 +77,7 @@ func splitFile(fn string, raw_urls chan string, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func SplitNgram(url string) []string {
+func SplitTrigram(url string) []string {
 	// Split an url into three-character chunks
 	results := []string{}
 	url = START_URL + url + END_URL
@@ -89,7 +89,7 @@ func SplitNgram(url string) []string {
 
 func splitURLs(inp chan string, outp chan URLData, wg *sync.WaitGroup) {
 	for line := range inp {
-		outp <- URLData{line, SplitNgram(line)}
+		outp <- URLData{line, SplitTrigram(line)}
 	}
 	close(outp)
 	wg.Done()

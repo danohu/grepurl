@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSplitNgram(t *testing.T) {
+func TestSplitTrigram(t *testing.T) {
 	// see what happens when we split an url
 	url := "example.com"
 	expected := []string{START_URL + "ex", "exa", "xam", "amp", "mpl", "ple", "le.", "e.c", ".co", "com", "om" + END_URL}
-	result := SplitNgram(url)
+	result := SplitTrigram(url)
 	for i, exp := range expected {
 		_, _, _ = i, exp, result
 		assert.Equal(t, result[i], exp, "ngram splitting non-match")
@@ -31,4 +31,8 @@ func TestURLStore(t *testing.T) {
 func TestRunImport(t *testing.T) {
 	files := []string{"testdata.txt"}
 	RunImport(files)
+}
+
+func TestRegex(t *testing.T) {
+	BuildQuery("([aA]bc|defgh)")
 }

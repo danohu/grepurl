@@ -7,6 +7,9 @@ import (
 	"sync"
 )
 
+const START_URL = "\x02"
+const END_URL = "\x03"
+
 type URLData struct {
 	url      string
 	trigrams []string

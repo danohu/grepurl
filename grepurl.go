@@ -27,6 +27,11 @@ func Sample(cli *cli.Context) error {
 	return nil
 }
 
+func Download(cli *cli.Context) error {
+	grepurl.ListIndexFiles("2016-05")
+	return nil
+}
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "grepurl"
@@ -48,6 +53,11 @@ func main() {
 			Name:   "sample",
 			Usage:  "give it a spin",
 			Action: Sample,
+		},
+		{
+			Name:   "download",
+			Usage:  "download some crawl archives",
+			Action: Download,
 		},
 	}
 	app.Run(os.Args)

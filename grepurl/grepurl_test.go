@@ -1,6 +1,7 @@
 package grepurl
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/RoaringBitmap/roaring"
@@ -39,12 +40,20 @@ func TestURLStore(t *testing.T) {
 }
 
 func TestRunImport(t *testing.T) {
-	files := []string{"testdata.txt"}
+	files := []string{"testdata/urls.txt"}
 	RunImport(files)
 }
 
+func TestURLsFromWat(t *testing.T) {
+	ch := make(chan string)
+	go URLsFromWAT("", ch)
+	for url := range ch {
+		fmt.Println(url)
+	}
+}
+
 func setUp() (URLStore, *TrigramIndex) {
-	files := []string{"testdata.txt"}
+	files := []string{"testdata/urls.txt"}
 	return RunImport(files)
 }
 

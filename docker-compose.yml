@@ -1,3 +1,10 @@
 grepurl:
   build: .
   command: grepurl
+
+redis:
+  image: redis
+  ports:
+    - "90995:6379"
+  environment:
+    REDIS_PASS: 'Sheu9dooUn1eech0'

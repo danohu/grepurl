@@ -32,6 +32,12 @@ const s3_upload_bucket = "alephdev.openoil.net"
 const s3_upload_prefix = "urls/"
 const s3_upload_region = "eu-west-1"
 
+const redis_host = "ohuiginn.net"
+const redis_port = "90995"
+const redis_password = "Sheu9dooUn1eech0"
+const redis_db = 9
+const redis_name = "grepurl"
+
 //XXX month should look like "2016-06"
 // beware tat
 // -- just getting the latest month for onw
@@ -50,6 +56,9 @@ func ListIndexFiles(month string) []string {
 		indexfiles = append(indexfiles, scanner.Text())
 	}
 	return indexfiles
+}
+
+func PushIndexFiles() {
 }
 
 /* This is assuming basic common_crawl stuff
@@ -170,7 +179,7 @@ func UploadURLs(dl_path string, clobber bool) int {
 // Take a gzipped s3 file, and return a scanner over it
 // Internally the file is downloaded to a temporary location,
 // unzipped and then removed
-func s3Gzip(bucket_name string, file_name string) *bufio.Scanner {
+func s3Gzip(bucket_name string, file_name string) (*bufio.Scanner, *os.File) {
 	file, _ := ioutil.TempFile("", "s3gzip_")
 	//defer file.Close()
 	//defer os.Remove(file.Name())

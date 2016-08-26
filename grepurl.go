@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 
 	"github.com/danohuiginn/grepurl/grepurl"
 	"github.com/urfave/cli"
@@ -28,7 +30,19 @@ func Sample(cli *cli.Context) error {
 }
 
 func Download(cli *cli.Context) error {
-	grepurl.ListIndexFiles("2016-05")
+	/*cmd := exec.Command("/home/dan/.virtualenvs/yl/bin/aws", "s3", "cp", "s3://commoncrawl/crawl-data/CC-MAIN-2016-22/segments/1464049270134.8/wat/CC-MAIN-20160524002110-00000-ip-10-185-217-139.ec2.internal.warc.wat.gz", "/tmp/mydl.gz")
+
+	output, err := cmd.CombinedOutput()
+	log.Println(strings.Join(cmd.Args, " "))
+	log.Println(err)
+	log.Println(string(output))
+	return nil
+	fn := "crawl-data/CC-MAIN-2016-22/segments/1464049270134.8/wat/CC-MAIN-20160524002110-00000-ip-10-185-217-139.ec2.internal.warc.wat.gz"
+	fn = "/tmp/unzip"*/
+	log.Println("starting upload")
+	indices := grepurl.ListIndexFiles("2016-05")
+	linecount := grepurl.UploadURLs(indices[0], true)
+	log.Println("uploaded " + strconv.Itoa(linecount) + " lines.")
 	return nil
 }
 

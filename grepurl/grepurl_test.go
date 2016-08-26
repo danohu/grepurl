@@ -1,7 +1,6 @@
 package grepurl
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/RoaringBitmap/roaring"
@@ -44,12 +43,33 @@ func TestRunImport(t *testing.T) {
 	RunImport(files)
 }
 
-func TestURLsFromWat(t *testing.T) {
+/*func TestURLsFromWat(t *testing.T) {
 	ch := make(chan string)
 	go URLsFromWAT("", ch)
 	for url := range ch {
 		fmt.Println(url)
 	}
+}*/
+
+func TestUploadURLs(t *testing.T) {
+	res := UploadURLs("", false)
+	assert.Equal(t, res, -1)
+}
+
+func TestGenerateS3Path(t *testing.T) {
+	source := "crawl-data/CC-MAIN-2016-26/segments/1466783408840.13/wat/CC-MAIN-20160624155008-00193-ip-10-164-35-72.ec2.internal.warc.wat.gz"
+	expected := "urls/2016-26/CC-MAIN-20160624155008-00193-ip-10-164-35-72.urls.gz"
+	actual := GenerateS3Path(source)
+	assert.Equal(t, expected, actual)
+}
+
+func TestS3PathExists(t *testing.T) {
+	exists := "crawl-data/CC-MAIN-2016-26/segments/1466783408840.13/wat/CC-MAIN-20160624155008-00193-ip-10-164-35-72.ec2.internal.warc.wat.gz"
+	does_not_exist := "crawl-data/CC-MAIN-2016-26/segments/1466783408840.13/wat/CC-MAIN-20160624155008-00193-ip-10-164-35-72.ec2.internal.BLAH_BLAH_BLAH.warc.wat.gz"
+	assert.Equal(t, true,
+		S3PathExists("commoncrawl", exists, "us-east-1"))
+	assert.Equal(t, false,
+		S3PathExists("commoncrawl", does_not_exist, "us-east-1"))
 }
 
 func setUp() (URLStore, *TrigramIndex) {
